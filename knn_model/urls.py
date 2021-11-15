@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from knn_model.views import *
+# from django.contrib.auth.views import LoginView
 
 urlpatterns=[
     url('api/knnResult$', knn_result),

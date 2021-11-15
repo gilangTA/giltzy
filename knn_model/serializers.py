@@ -2,13 +2,6 @@ from django.db.models import fields
 from knn_model.models import *
 from rest_framework import serializers
 
-
-class KnnSerializer(serializers.ModelSerializer):
-    class meta:
-        model = Knn
-        fields = ['Performance','Analysis']
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

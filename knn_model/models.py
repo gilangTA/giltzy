@@ -1,13 +1,6 @@
 from django.db import models
 
 # Create your models here.
-class Knn(models.Model):
-    performance = models.CharField(max_length=500)
-    analysis = models.CharField(max_length=5000)
-
-    def __str__(self):
-        return self.performance
-
 class User(models.Model):
     id_user = models.AutoField(primary_key=True)
     email = models.CharField(max_length=200)
