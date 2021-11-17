@@ -1,19 +1,14 @@
-from collections import defaultdict
-from django.shortcuts import render
-from rest_framework.utils import json
-#from django.http import HttpResponse
-#from numpy.lib.function_base import append
+from django.shortcuts import redirect, render
 from knn_model.models import *
-import joblib
 from django.http import JsonResponse
-from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 from rest_framework import status
 from knn_model.serializers import *
-import numpy as np
+from django.contrib import messages
+from operator import itemgetter
 
-def home(request):
-    return render(request, "home.html")
+import joblib
+import numpy as np
 
 pfmc = joblib.load('knnPerformance.sav')
 alys = joblib.load('knnAnalysis.sav')
@@ -143,3 +138,58 @@ def crud_message_detail(request,pk):
     if request.method == 'GET': 
         message_serializer = HitorySerializer(message_get) 
         return JsonResponse(message_serializer.data)
+
+#Login
+def login_view(request):    
+    data_username =  User.objects.values_list('username')
+    data_password =  User.objects.values_list('password')
+
+    username_list=[]
+    password_list=[]
+
+    for i in  data_username:
+        username_list.append(i)
+    
+    for j in  data_password:
+        password_list.append(j) 
+
+    res = list(map(itemgetter(0),username_list))
+    res2 = list(map(itemgetter(0),password_list))
+
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        
+        i = 1
+        k = len(res)
+        while i < k :
+            if res[i]==username and res2[i]==password:
+                return knn_result(request)
+                break
+            i+=1
+        else:
+            messages.info(request, "Check username or password")
+    return render(request, 'login.html')
+        # if userLogin.username == '' or userLogin.password == '':
+        #     messages.info(request, 'Empty Use rname or Password')
+        #     #return
+        # elif  userLogin.username == False or userLogin.password == False:
+        #     messages.info(request, 'Wrong Username or Password')
+        #     #return render('login_view')
+        # else:
+   
+
+#Register
+def register_view(request):
+    if request.method == 'POST':
+        userRegister = User()
+        userRegister.email = request.POST['email']
+        userRegister.username = request.POST['username']
+        userRegister.password = request.POST['password']
+
+        if userRegister.username == '' and userRegister.password == '':
+            messages.info(request, 'There is empty field')
+            #return knn_result(request)
+        else:
+            userRegister.save()
+    return render(request, 'register.html')

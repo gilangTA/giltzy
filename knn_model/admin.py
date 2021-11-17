@@ -4,11 +4,11 @@ from knn_model.models import User, History, Message
 # Register your models here.
 
 class UserApp(admin.ModelAdmin):
-    list_display = ['id_user', 'username', 'email']
+    list_display = ['id_user', 'username', 'email', 'password']
     search_fields = ['username', 'email']
 
 class HistoryPlay(admin.ModelAdmin):
-    list_display = ['id_history','hero_name', 'hero_damage', 'turret_damage', 'damage_taken', 'war_participation', 'result']
+    list_display = ['id_history','id_user','hero_name', 'hero_damage', 'turret_damage', 'damage_taken', 'war_participation', 'result']
     search_fields = ['hero_name','result']
 
 class MessageUser(admin.ModelAdmin):

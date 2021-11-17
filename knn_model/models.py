@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.deletion import CASCADE
 
 # Create your models here.
 class User(models.Model):
@@ -12,6 +13,7 @@ class User(models.Model):
 
 class History(models.Model):
     id_history = models.AutoField(primary_key=True)
+    id_user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
     hero_name = models.CharField(max_length=200)
     hero_damage = models.IntegerField(null=False)
     turret_damage = models.IntegerField(null=False)
@@ -21,7 +23,6 @@ class History(models.Model):
 
     def __str__(self):
         return self.hero_name
-
 class Message(models.Model):
     id_message = models.AutoField(primary_key=True)
     id_user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
