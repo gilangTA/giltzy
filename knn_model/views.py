@@ -9,27 +9,46 @@ from operator import itemgetter
 
 import joblib
 import numpy as np
+import pandas as pd
+
+dataset = pd.read_csv('dataset.csv')
 
 pfmc = joblib.load('knnPerformance.sav')
 alys = joblib.load('knnAnalysis.sav')
 
-def knn_result(request):     
-        lis = []
-        lis.append(12) #angka diganti request GET
-        lis.append(34)
-        lis.append(53)
-        lis.append(31)
-        lis.append(1)
+train_data = pd.DataFrame(dataset,columns=['Hero Damage', 'Damage Taken', 'Teamfight Participation', 'Turret Damage', 'Role Id'])
 
-        result1 = np.array(pfmc.predict([lis]))
-        result1 = result1.tolist()
+@api_view(['POST','GET'])
+def knn_result(request):
+    if request.method == 'POST': 
+            test_data = pd.DataFrame({"Hero Damage" : request.POST['hero_damage'],
+                                      "Damage Taken" : request.POST['damage_taken'],
+                                      "Teamfight Participation" : request.POST['war_participation'],
+                                      "Turret Damage" : request.POST['turret_damage'],
+                                      "Role Id" : request.POST['role_id']
+                                    }, index=[0])
 
-        result2 = np.array(alys.predict([lis]))
-        result2 = result2.tolist()
+            test_data = train_data.append(test_data, ignore_index=True)
 
-        result = [{'Performance' : result1},{'Analysis' :result2}]
+            newMax = 1
+            newMin = 0
+            
+            test_data['Hero Damage'] = (test_data['Hero Damage'].astype(float) - test_data['Hero Damage'].astype(float).min()) * (newMax - newMin)  / (test_data['Hero Damage'].astype(float).max() - test_data['Hero Damage'].astype(float).min()) + newMin
+            test_data["Damage Taken"] = (test_data["Damage Taken"].astype(float) - test_data["Damage Taken"].astype(float).min()) * (newMax - newMin)  / (test_data["Damage Taken"].astype(float).max() - test_data["Damage Taken"].astype(float).min()) + newMin
+            test_data["Teamfight Participation"] = (test_data["Teamfight Participation"].astype(float) - test_data["Teamfight Participation"].astype(float).min()) * (newMax - newMin)  / (test_data["Teamfight Participation"].astype(float).max() - test_data["Teamfight Participation"].astype(float).min()) + newMin
+            test_data["Turret Damage"] = (test_data["Turret Damage"].astype(float) - test_data["Turret Damage"].astype(float).min()) * (newMax - newMin)  / (test_data["Turret Damage"].astype(float).max() - test_data["Turret Damage"].astype(float).min()) + newMin
 
-        return JsonResponse(result, safe=False)
+            test_data = test_data.tail(1)
+            
+            result1 = pfmc.predict(test_data)
+            result2 = alys.predict(test_data)
+
+            result1 = result1.tolist()
+            result2 = result2.tolist()
+
+            result = [{'Performance' : result1},{'Analysis' :result2}]
+
+            return JsonResponse(result, safe=False)
 
 #CRUD USER
 @api_view(['GET', 'POST'])
