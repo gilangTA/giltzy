@@ -199,16 +199,11 @@ def login_view(request):
    
 
 #Register
+@api_view(['POST'])
 def register_view(request):
     if request.method == 'POST':
-        userRegister = User()
-        userRegister.email = request.POST['email']
-        userRegister.username = request.POST['username']
-        userRegister.password = request.POST['password']
-
-        if userRegister.username == '' and userRegister.password == '':
-            messages.info(request, 'There is empty field')
-            #return knn_result(request)
-        else:
-            userRegister.save()
-    return render(request, 'register.html')
+        users_serializer = UserSerializer(data=request.data)
+        if users_serializer.is_valid():
+            users_serializer.save()
+            return JsonResponse(users_serializer.data, status=status.HTTP_201_CREATED) 
+        return JsonResponse(users_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
