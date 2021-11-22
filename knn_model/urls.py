@@ -1,20 +1,18 @@
 from django.conf.urls import url
+from django.urls import path
 from knn_model.views import *
-# from django.contrib.auth.views import LoginView
+
+from rest_framework_simplejwt.views import (
+    TokenRefreshView,
+)
 
 urlpatterns=[
-    url('api/knnResult$', knn_result),
+    path('knnResult/', knn_result),
     
-    url('api/user$', crud_user),
-    url('api/user/(?P<pk>[0-9]+)$', crud_user_detail),
+    path('history/', crud_history),
     
-    url('api/history$', crud_history),
-    url('api/history/(?P<pk>[0-9]+)$', crud_history_detail),
+    path('message/', crud_message),
     
-    url('api/message$', crud_history),
-    url('api/message/(?P<pk>[0-9]+)$', crud_history_detail),
-
-    url('api/login$', login_view),
-    
-    url('api/register$', register_view),
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

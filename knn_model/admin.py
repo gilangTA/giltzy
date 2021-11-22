@@ -1,11 +1,11 @@
 from django.contrib import admin
-from knn_model.models import User, History, Message
+from knn_model.models import User,History, Message
 
 # Register your models here.
 
-class UserApp(admin.ModelAdmin):
-    list_display = ['id_user', 'username', 'email', 'password']
-    search_fields = ['username', 'email']
+# class UserApp(admin.ModelAdmin):
+#     list_display = ['id_user', 'username', 'email', 'password']
+#     search_fields = ['username', 'email']
 
 class HistoryPlay(admin.ModelAdmin):
     list_display = ['id_history','id_user','hero_name', 'hero_damage', 'turret_damage', 'damage_taken', 'war_participation', 'result']
@@ -15,7 +15,7 @@ class MessageUser(admin.ModelAdmin):
     list_display = ['id_message', 'id_user', 'message']
     search_fields = ['id_message', 'id_user', 'message']
 
-admin.site.register(User, UserApp)
+# admin.site.register(User, UserApp)
 
 admin.site.register(History, HistoryPlay)
 

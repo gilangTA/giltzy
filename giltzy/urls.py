@@ -6,10 +6,7 @@ from knn_model.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # path('user/', crud_user, name="user"),
-    # path('history/', crud_history, name="history"),
-    # path('message/', crud_message, name="message"),
-
-    url('', include('knn_model.urls')),
+    path('api/', include('knn_model.urls')),
+    url('api/history/(?P<pk>[0-9]+)$', crud_history_detail),
+    url('api/message/(?P<pk>[0-9]+)$', crud_message_detail),
 ]
