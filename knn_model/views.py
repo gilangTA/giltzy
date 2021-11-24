@@ -1,7 +1,9 @@
+import json
 import re
 from django.shortcuts import redirect, render
+from numpy.core.records import array
 from knn_model.models import *
-from django.http import JsonResponse
+from django.http import JsonResponse, response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from knn_model.serializers import *
@@ -12,6 +14,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from django.contrib.auth.models import User
 
 import joblib
 import numpy as np
@@ -27,7 +30,7 @@ train_data = pd.DataFrame(dataset,columns=['Hero Damage', 'Damage Taken', 'Teamf
 @api_view(['POST','GET'])
 #@permission_classes([IsAuthenticated])
 def knn_result(request):
-    User = request.user
+    #User = request.user
     if request.method == 'POST':
             test_data = pd.DataFrame({"Hero Damage" : request.POST['hero_damage'],
                                       "Damage Taken" : request.POST['damage_taken'],
@@ -101,23 +104,34 @@ def knn_result(request):
 @api_view(['GET', 'POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def crud_history(request):
-    User = request.user
+    User_history = request.user
     if request.method == 'GET':
-        history_get = User.history_set.all()
+        history_get = User_history.history_set.all()
         
         title = request.query_params.get('title', None)
         if title is not None:
             history_get = history_get.filter(title__icontains=title)
         
-        history_serializer = HitorySerializer(history_get, many=True)
+        history_serializer = HistorySerializer(history_get, many=True)
         return JsonResponse(history_serializer.data, safe=False)
  
     elif request.method == 'POST':
-        history_serializer = HitorySerializer(data=request.data)
-        if history_serializer.is_valid():
-            history_serializer.save()
-            return JsonResponse(history_serializer.data, status=status.HTTP_201_CREATED) 
-        return JsonResponse(history_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # history_serializer = HistorySerializer(data = request.data)
+        
+        history = History()
+        history.id_user = User_history
+        history.hero_name = request.data['hero_name']
+        history.hero_damage = request.data['hero_damage']
+        history.damage_taken = request.data['damage_taken']
+        history.war_participation = request.data['war_participation']
+        history.turret_damage = request.data['turret_damage']
+        history.result = request.data['result']
+        history.save()
+        # if history_serializer.is_valid():            
+        #     history_serializer.save()
+        
+        return JsonResponse({"Message" : "Upload History Successful" },safe=False ,status=status.HTTP_201_CREATED) 
+        # return JsonResponse(history_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
         count = History.objects.all().delete()
@@ -134,7 +148,7 @@ def crud_history_detail(request,pk):
         return JsonResponse({'message': 'The History does not exist'}, status=status.HTTP_404_NOT_FOUND) 
     
     if request.method == 'GET': 
-        history_serializer = HitorySerializer(history_get) 
+        history_serializer = HistorySerializer(history_get) 
         return JsonResponse(history_serializer.data) 
 
 #CRUD Message

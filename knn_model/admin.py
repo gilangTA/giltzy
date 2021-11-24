@@ -20,3 +20,7 @@ class MessageUser(admin.ModelAdmin):
 admin.site.register(History, HistoryPlay)
 
 admin.site.register(Message, MessageUser)
+
+# class YourAdmin(admin.ModelAdmin):
+#     def formfield_for_foreignkey(self, db_field, request, **kwargs):                
+#         if db_field.name == 'user': kwargs['queryset'] = User.objects.filter(user=request.user)
