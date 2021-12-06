@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
-from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
 import joblib
 import numpy as np
@@ -28,9 +28,8 @@ alys = joblib.load('knnAnalysis.sav')
 train_data = pd.DataFrame(dataset,columns=['Hero Damage', 'Damage Taken', 'Teamfight Participation', 'Turret Damage', 'Role Id'])
 
 @api_view(['POST','GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def knn_result(request):
-    #User = request.user
     if request.method == 'POST':
             test_data = pd.DataFrame({"Hero Damage" : request.POST['hero_damage'],
                                       "Damage Taken" : request.POST['damage_taken'],
@@ -104,7 +103,9 @@ def knn_result(request):
 @api_view(['GET', 'POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def crud_history(request):
+
     User_history = request.user
+
     if request.method == 'GET':
         history_get = User_history.history_set.all()
         
@@ -116,7 +117,6 @@ def crud_history(request):
         return JsonResponse(history_serializer.data, safe=False)
  
     elif request.method == 'POST':
-        # history_serializer = HistorySerializer(data = request.data)
         
         history = History()
         history.id_user = User_history
@@ -127,11 +127,8 @@ def crud_history(request):
         history.turret_damage = request.data['turret_damage']
         history.result = request.data['result']
         history.save()
-        # if history_serializer.is_valid():            
-        #     history_serializer.save()
         
         return JsonResponse({"Message" : "Upload History Successful" },safe=False ,status=status.HTTP_201_CREATED) 
-        # return JsonResponse(history_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
         count = History.objects.all().delete()
@@ -153,9 +150,9 @@ def crud_history_detail(request,pk):
 
 #CRUD Message
 @api_view(['GET', 'POST'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def crud_message(request):
-    #User = request.user
+    User_message = request.user
     if request.method == 'GET':
         #message_get = User.message_set.all()
         message_get = Message.objects.all()
@@ -196,10 +193,19 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Add custom claims
         token['usernane'] = user.username
-        token['email'] = user.email
+        #token['email'] = user.email
         token['password'] = user.password
         # ...
         return token
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+#Register
+@api_view(['POST'])
+def register(request):
+    if request.method == 'POST':
+        register_form = RegisterSerializer(data=request.POST)
+        if register_form.is_valid():
+            register_form.save()
+    return JsonResponse({'message': 'Register Success'}, status=status.HTTP_404_NOT_FOUND) 

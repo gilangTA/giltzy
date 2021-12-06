@@ -1,11 +1,11 @@
 from knn_model.models import *
 from rest_framework import serializers
-from django.forms import ModelForm
+from django.contrib.auth.models import User
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id_user', 'email', 'username', 'password']
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'password']
 
 class HistorySerializer(serializers.ModelSerializer):
     class Meta:
