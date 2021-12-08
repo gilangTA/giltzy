@@ -8,12 +8,14 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns=[
     path('knnResult/', knn_result),
+
+    path('user/', crud_user),
     
     path('history/', crud_history),
     
     path('message/', crud_message),
 
-    path('register/', register),
+    path('registerUser/', register_user),
     
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

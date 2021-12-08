@@ -1,20 +1,14 @@
-import json
-import re
-from django.shortcuts import redirect, render
-from numpy.core.records import array
 from knn_model.models import *
-from django.http import JsonResponse, response
+from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework import status
 from knn_model.serializers import *
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from django.http import HttpResponse
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate
 
 import joblib
 import numpy as np
@@ -60,6 +54,21 @@ def knn_result(request):
 
             return JsonResponse(result, safe=False)
 
+#CRUD USER
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def crud_user(request):
+    User_user = request.user
+    if request.method == 'PUT':
+        user_detail = User.objects.get(id = User_user.id)
+        user_detail.set_password(request.data['password'])
+        user_detail.save()
+        return JsonResponse({"Message" : "Update Successful" },safe=False ,status=status.HTTP_201_CREATED)
+
+    elif request.method == 'DELETE':
+        count = User_user.delete()
+        return JsonResponse({'message': ' User were deleted successfully!'.format(count[0])}, status=status.HTTP_204_NO_CONTENT)
+
 # #CRUD USER
 # @api_view(['GET', 'POST'])
 # def crud_user(request):
@@ -103,9 +112,7 @@ def knn_result(request):
 @api_view(['GET', 'POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def crud_history(request):
-
     User_history = request.user
-
     if request.method == 'GET':
         history_get = User_history.history_set.all()
         
@@ -131,31 +138,30 @@ def crud_history(request):
         return JsonResponse({"Message" : "Upload History Successful" },safe=False ,status=status.HTTP_201_CREATED) 
     
     elif request.method == 'DELETE':
-        count = History.objects.all().delete()
+        count = User_history.history_set.all().delete()
         return JsonResponse({'message': ' History were deleted successfully!'.format(count[0])}, status=status.HTTP_204_NO_CONTENT)
 
 #CRUD History Detail
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def crud_history_detail(request,pk):
-    User = request.user
-    try: 
-        history_get = User.history_set.get(pk=pk) 
-    except History.DoesNotExist: 
-        return JsonResponse({'message': 'The History does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def crud_history_detail(request,pk):
+#     User = request.user
+#     try: 
+#         history_get = User.history_set.get(pk=pk) 
+#     except History.DoesNotExist: 
+#         return JsonResponse({'message': 'The History does not exist'}, status=status.HTTP_404_NOT_FOUND) 
     
-    if request.method == 'GET': 
-        history_serializer = HistorySerializer(history_get) 
-        return JsonResponse(history_serializer.data) 
+#     if request.method == 'GET': 
+#         history_serializer = HistorySerializer(history_get) 
+#         return JsonResponse(history_serializer.data) 
 
 #CRUD Message
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def crud_message(request):
     User_message = request.user
     if request.method == 'GET':
-        #message_get = User.message_set.all()
-        message_get = Message.objects.all()
+        message_get = User_message.message_set.all()
         
         title = request.query_params.get('title', None)
         if title is not None:
@@ -165,11 +171,17 @@ def crud_message(request):
         return JsonResponse(message_serializer.data, safe=False)
  
     elif request.method == 'POST':
-        message_serializer = MessageSerializer(data=request.data)
-        if message_serializer.is_valid():
-            message_serializer.save()
-            return JsonResponse(message_serializer.data, status=status.HTTP_201_CREATED) 
-        return JsonResponse(message_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        message = Message()
+        message.id_user = User_message
+        message.message = request.data['message']
+        message.save()
+        
+        return JsonResponse({"Message" : "Message Successful" },safe=False ,status=status.HTTP_201_CREATED) 
+    
+    elif request.method == 'DELETE':
+        count = User_message.message_set.all().delete()
+        return JsonResponse({'message': ' Message were deleted successfully!'.format(count[0])}, status=status.HTTP_204_NO_CONTENT)
 
 #CRUD Message Detail
 # @api_view(['GET'])
@@ -193,7 +205,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Add custom claims
         token['usernane'] = user.username
-        #token['email'] = user.email
+        token['email'] = user.email
         token['password'] = user.password
         # ...
         return token
@@ -203,9 +215,14 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 #Register
 @api_view(['POST'])
-def register(request):
-    if request.method == 'POST':
-        register_form = RegisterSerializer(data=request.POST)
-        if register_form.is_valid():
-            register_form.save()
-    return JsonResponse({'message': 'Register Success'}, status=status.HTTP_404_NOT_FOUND) 
+def register_user(request):
+    userName = request.data['username']
+    userPass = request.data['password']
+    userMail = request.data['email']
+
+    if userName and userPass and userMail:
+       created = User.objects.create_user(userName, userMail, userPass)
+       if created:
+            return JsonResponse({'message': 'Register Success'}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        return JsonResponse({'message': 'there is empty field'}, status=status.HTTP_404_NOT_FOUND)
