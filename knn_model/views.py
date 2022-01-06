@@ -22,7 +22,7 @@ alys = joblib.load('knnAnalysis.sav')
 train_data = pd.DataFrame(dataset,columns=['Hero Damage', 'Damage Taken', 'Teamfight Participation', 'Turret Damage', 'Role Id'])
 
 @api_view(['POST','GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def knn_result(request):
     if request.method == 'POST':
             test_data = pd.DataFrame({"Hero Damage" : request.POST['hero_damage'],
@@ -50,9 +50,9 @@ def knn_result(request):
             result1 = result1.tolist()
             result2 = result2.tolist()
 
-            result = [{'Performance' : result1},{'Analysis' :result2}]
+            result = {'performance' : result1[0]}, {'Analysis' :result2[0]}
 
-            return JsonResponse(result, safe=False)
+            return JsonResponse({'performance' : result1[0]}, safe=False)
 
 #CRUD USER
 @api_view(['PUT', 'DELETE'])
@@ -157,11 +157,11 @@ def crud_history(request):
 
 #CRUD Message
 @api_view(['GET', 'POST', 'DELETE'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def crud_message(request):
     User_message = request.user
     if request.method == 'GET':
-        message_get = User_message.message_set.all()
+        message_get = Message.objects.all()
         
         title = request.query_params.get('title', None)
         if title is not None:
@@ -177,7 +177,7 @@ def crud_message(request):
         message.message = request.data['message']
         message.save()
         
-        return JsonResponse({"Message" : "Message Successful" },safe=False ,status=status.HTTP_201_CREATED) 
+        return JsonResponse({"message" : "Message Successful" },safe=False ,status=status.HTTP_201_CREATED) 
     
     elif request.method == 'DELETE':
         count = User_message.message_set.all().delete()
