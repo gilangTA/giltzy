@@ -10,12 +10,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class HistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = History
-        #fields = ['hero_name','hero_damage','turret_damage','damage_taken','war_participation','result']
-        fields = '__all__'
-
-    # def to_representation(self, instance):
-    #         self.fields['id_user'] =  User.objects.get('id')
-    #         return super(HitorySerializer, self).to_representation(instance)  
+        fields = '__all__' 
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:

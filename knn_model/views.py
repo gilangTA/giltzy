@@ -22,7 +22,7 @@ alys = joblib.load('knnAnalysis.sav')
 train_data = pd.DataFrame(dataset,columns=['Hero Damage', 'Damage Taken', 'Teamfight Participation', 'Turret Damage', 'Role Id'])
 
 @api_view(['POST','GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def knn_result(request):
     if request.method == 'POST':
             test_data = pd.DataFrame({"Hero Damage" : request.POST['hero_damage'],
@@ -45,21 +45,29 @@ def knn_result(request):
             test_data = test_data.tail(1)
             
             result1 = pfmc.predict(test_data)
-            result2 = alys.predict(test_data)
-
             result1 = result1.tolist()
+           
+            result2 = alys.predict(test_data)
             result2 = result2.tolist()
 
-            result = {'performance' : result1[0]}, {'Analysis' :result2[0]}
+            result_dict = {'performance' : result1[0], 'analysis' :result2[0]}
 
-            return JsonResponse({'performance' : result1[0]}, safe=False)
+            return JsonResponse(result_dict, safe=False)
 
 #CRUD USER
-@api_view(['PUT', 'DELETE'])
+@api_view(['PUT', 'DELETE', 'GET'])
 @permission_classes([IsAuthenticated])
 def crud_user(request):
     User_user = request.user
-    if request.method == 'PUT':
+    if request.method == 'GET':
+        username = User_user.username
+        email = User_user.email
+
+        user_profile = {'username' : username, 'email' :email}
+
+        return JsonResponse(user_profile, safe=False)
+
+    elif request.method == 'PUT':
         user_detail = User.objects.get(id = User_user.id)
         user_detail.set_password(request.data['password'])
         user_detail.save()
@@ -157,7 +165,7 @@ def crud_history(request):
 
 #CRUD Message
 @api_view(['GET', 'POST', 'DELETE'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def crud_message(request):
     User_message = request.user
     if request.method == 'GET':
